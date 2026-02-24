@@ -3,4 +3,4 @@ jdk:
 before_install:
   - ./gradlew clean
 install:
-  - ./gradlew :BetaFlox_SDK:publishToMavenLocal
+  - ./gradlew publishToMavenLocal
