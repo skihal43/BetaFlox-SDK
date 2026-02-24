@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.betaflox.sdk.fraud.DeviceFingerprintTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-02-24T01:48:19" hostname="DESKTOP-PM8OTAT" time="0.071">
+  <properties/>
+  <testcase name="normalizeInput handles special characters" classname="com.betaflox.sdk.fraud.DeviceFingerprintTest" time="0.017"/>
+  <testcase name="validateHash checks format correctly" classname="com.betaflox.sdk.fraud.DeviceFingerprintTest" time="0.001"/>
+  <testcase name="combineDeviceInfo creates proper fingerprint string" classname="com.betaflox.sdk.fraud.DeviceFingerprintTest" time="0.009"/>
+  <testcase name="generateHash returns consistent hash for same inputs" classname="com.betaflox.sdk.fraud.DeviceFingerprintTest" time="0.038"/>
+  <testcase name="generateHash returns non-empty string" classname="com.betaflox.sdk.fraud.DeviceFingerprintTest" time="0.002"/>
+  <testcase name="hashesMatch compares correctly" classname="com.betaflox.sdk.fraud.DeviceFingerprintTest" time="0.001"/>
+  <testcase name="generateHash returns different hash for different inputs" classname="com.betaflox.sdk.fraud.DeviceFingerprintTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

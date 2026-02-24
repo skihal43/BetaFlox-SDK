@@ -1,0 +1,35 @@
+> Task :preBuild UP-TO-DATE
+> Task :preDebugBuild UP-TO-DATE
+> Task :mergeDebugJniLibFolders UP-TO-DATE
+> Task :mergeDebugNativeLibs NO-SOURCE
+> Task :stripDebugDebugSymbols NO-SOURCE
+> Task :copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :generateDebugResValues UP-TO-DATE
+> Task :generateDebugResources UP-TO-DATE
+> Task :packageDebugResources UP-TO-DATE
+> Task :parseDebugLocalResources UP-TO-DATE
+> Task :generateDebugRFile UP-TO-DATE
+> Task :extractDeepLinksForAarDebug UP-TO-DATE
+> Task :javaPreCompileDebug UP-TO-DATE
+> Task :mergeDebugShaders UP-TO-DATE
+> Task :compileDebugShaders NO-SOURCE
+> Task :generateDebugAssets UP-TO-DATE
+> Task :packageDebugAssets UP-TO-DATE
+> Task :prepareDebugArtProfile UP-TO-DATE
+> Task :prepareLintJarForPublish UP-TO-DATE
+> Task :processDebugManifest UP-TO-DATE
+> Task :writeDebugAarMetadata UP-TO-DATE
+> Task :compileDebugKotlin
+> Task :extractDebugAnnotations
+> Task :compileDebugJavaWithJavac NO-SOURCE
+> Task :mergeDebugGeneratedProguardFiles
+> Task :mergeDebugConsumerProguardFiles
+> Task :processDebugJavaRes UP-TO-DATE
+> Task :mergeDebugJavaResource
+> Task :syncDebugLibJars
+> Task :bundleDebugAar
+> Task :assembleDebug
+
+BUILD SUCCESSFUL in 4m 3s
+23 actionable tasks: 7 executed, 16 up-to-date

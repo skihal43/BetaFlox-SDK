@@ -1,0 +1,306 @@
+
+> Configure project :BetaFlox_SDK
+.\gradlew : e: file:///C:/Users/TESTTTT/AndroidStudioProje
+cts/BetaFlox/betaflox_sdk/BetaFlox_SDK/build.gradle.kts:9:
+5: Unresolved reference. None of the following candidates 
+is applicable because of receiver type mismatch: 
+At line:1 char:1
++ .\gradlew build > build_log.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (e: file    
+:///C:/U...type mismatch: :String) [], RemoteExc    eption
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+public inline operator fun <T : Any, C : 
+NamedDomainObjectContainer<TypeVariable(T)>> 
+TypeVariable(C).invoke(configuration: Action<NamedDomainOb
+jectContainerScope<TypeVariable(T)>>): TypeVariable(C) 
+defined in org.gradle.kotlin.dsl
+public operator fun <T> 
+Closure<TypeVariable(T)>.invoke(): TypeVariable(T) 
+defined in org.gradle.kotlin.dsl
+public operator fun <T> 
+Closure<TypeVariable(T)>.invoke(x: Any?): TypeVariable(T) 
+defined in org.gradle.kotlin.dsl
+public operator fun <T> 
+Closure<TypeVariable(T)>.invoke(vararg xs: Any?): 
+TypeVariable(T) defined in org.gradle.kotlin.dsl
+public operator fun <V> 
+Callable<TypeVariable(V)>.invoke(): TypeVariable(V) 
+defined in org.gradle.kotlin.dsl
+public operator fun <T, R> 
+DeepRecursiveFunction<TypeVariable(T), 
+TypeVariable(R)>.invoke(value: TypeVariable(T)): 
+TypeVariable(R) defined in kotlin
+public operator fun <T> Action<in 
+TypeVariable(T)>.invoke(target: TypeVariable(T)): Unit 
+defined in org.gradle.kotlin.dsl
+public operator fun <T> 
+NamedDomainObjectProvider<TypeVariable(T)>.invoke(action: 
+TypeVariable(T).() -> Unit): Unit defined in 
+org.gradle.kotlin.dsl
+public inline operator fun 
+ConfigurationContainer.invoke(configuration: 
+Action<ConfigurationContainerScope>): 
+ConfigurationContainer defined in org.gradle.kotlin.dsl
+public operator fun ArtifactHandler.invoke(configuration: 
+ArtifactHandlerScope.() -> Unit): Unit defined in 
+org.gradle.kotlin.dsl
+public operator fun <D : Dependency> 
+DependencyCollector.invoke(dependency: TypeVariable(D), 
+configuration: Action<in TypeVariable(D)>): Unit defined 
+in org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(dependencyNotation: 
+CharSequence): Unit defined in org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(dependencyNotation: 
+CharSequence, configuration: Action<in 
+ExternalModuleDependency>): Unit defined in 
+org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(dependency: Dependency): Unit 
+defined in org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(dependencyConstraint: 
+DependencyConstraint): Unit defined in 
+org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(dependencyConstraint: 
+DependencyConstraint, configuration: Action<in 
+DependencyConstraint>): Unit defined in 
+org.gradle.kotlin.dsl
+public operator fun DependencyCollector.invoke(files: 
+FileCollection): Unit defined in org.gradle.kotlin.dsl
+public operator fun DependencyCollector.invoke(files: 
+FileCollection, configuration: Action<in 
+FileCollectionDependency>): Unit defined in 
+org.gradle.kotlin.dsl
+public operator fun <D : Dependency> 
+DependencyCollector.invoke(dependency: Provider<out 
+TypeVariable(D)>, configuration: Action<in 
+TypeVariable(D)>): Unit defined in org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(dependency: Provider<out 
+Dependency>): Unit defined in org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(dependencyConstraint: 
+Provider<out DependencyConstraint>): Unit defined in 
+org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(dependencyConstraint: 
+Provider<out DependencyConstraint>, configuration: 
+Action<in DependencyConstraint>): Unit defined in 
+org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(externalModule: 
+ProviderConvertible<out 
+MinimalExternalModuleDependency>): Unit defined in 
+org.gradle.kotlin.dsl
+public operator fun 
+DependencyCollector.invoke(externalModule: 
+ProviderConvertible<out MinimalExternalModuleDependency>, 
+configuration: Action<in ExternalModuleDependency>): Unit 
+defined in org.gradle.kotlin.dsl
+public operator fun 
+DependencyConstraintHandler.invoke(configuration: 
+DependencyConstraintHandlerScope.() -> Unit): Unit 
+defined in org.gradle.kotlin.dsl
+public operator fun <D : ModuleDependency> 
+DependencyModifier.invoke(dependency: TypeVariable(D)): 
+TypeVariable(D) defined in org.gradle.kotlin.dsl
+public operator fun 
+DependencyModifier.invoke(dependencyNotation: 
+CharSequence): ExternalModuleDependency defined in 
+org.gradle.kotlin.dsl
+public operator fun DependencyModifier.invoke(dependency: 
+Provider<out ModuleDependency>): Provider<out 
+ModuleDependency> defined in org.gradle.kotlin.dsl
+public operator fun DependencyModifier.invoke(dependency: 
+ProviderConvertible<out 
+MinimalExternalModuleDependency>): Provider<out 
+MinimalExternalModuleDependency> defined in 
+org.gradle.kotlin.dsl
+public inline operator fun <T> 
+ExtraPropertiesExtension.invoke(initialValueProvider: () 
+-> TypeVariable(T)): InitialValueExtraPropertyDelegateProv
+ider<TypeVariable(T)> defined in org.gradle.kotlin.dsl
+public operator fun <T> 
+ExtraPropertiesExtension.invoke(initialValue: 
+TypeVariable(T)): InitialValueExtraPropertyDelegateProvide
+r<TypeVariable(T)> defined in org.gradle.kotlin.dsl
+public operator fun <T> Spec<TypeVariable(T)>.invoke(arg: 
+TypeVariable(T)): Boolean defined in org.gradle.kotlin.dsl
+public inline operator fun 
+TaskContainer.invoke(configuration: TaskContainerScope.() 
+-> Unit): TaskContainer defined in org.gradle.kotlin.dsl
+e: file:///C:/Users/TESTTTT/AndroidStudioProjects/BetaFlox
+/betaflox_sdk/BetaFlox_SDK/build.gradle.kts:10:19: 
+Unresolved reference. None of the following candidates is 
+applicable because of receiver type mismatch: 
+public open fun NamedDomainObjectContainer<LibraryBuildTyp
+e>.release(action: LibraryBuildType.() -> Unit): Unit 
+defined in com.android.build.gradle.LibraryExtension
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file 'C:\Users\TESTTTT\AndroidStudioProjects\BetaFlo
+x\betaflox_sdk\BetaFlox_SDK\build.gradle.kts' line: 9
+
+* What went wrong:
+Script compilation errors:
+
+  Line 09:     compileSdk {
+               ^ Unresolved reference. None of the 
+following candidates is applicable because of receiver 
+type mismatch: 
+                   public inline operator fun <T : Any, C 
+: NamedDomainObjectContainer<TypeVariable(T)>> 
+TypeVariable(C).invoke(configuration: Action<NamedDomainOb
+jectContainerScope<TypeVariable(T)>>): TypeVariable(C) 
+defined in org.gradle.kotlin.dsl
+                   public operator fun <T> 
+Closure<TypeVariable(T)>.invoke(): TypeVariable(T) 
+defined in org.gradle.kotlin.dsl
+                   public operator fun <T> 
+Closure<TypeVariable(T)>.invoke(x: Any?): TypeVariable(T) 
+defined in org.gradle.kotlin.dsl
+                   public operator fun <T> 
+Closure<TypeVariable(T)>.invoke(vararg xs: Any?): 
+TypeVariable(T) defined in org.gradle.kotlin.dsl
+                   public operator fun <V> 
+Callable<TypeVariable(V)>.invoke(): TypeVariable(V) 
+defined in org.gradle.kotlin.dsl
+                   public operator fun <T, R> 
+DeepRecursiveFunction<TypeVariable(T), 
+TypeVariable(R)>.invoke(value: TypeVariable(T)): 
+TypeVariable(R) defined in kotlin
+                   public operator fun <T> Action<in 
+TypeVariable(T)>.invoke(target: TypeVariable(T)): Unit 
+defined in org.gradle.kotlin.dsl
+                   public operator fun <T> 
+NamedDomainObjectProvider<TypeVariable(T)>.invoke(action: 
+TypeVariable(T).() -> Unit): Unit defined in 
+org.gradle.kotlin.dsl
+                   public inline operator fun 
+ConfigurationContainer.invoke(configuration: 
+Action<ConfigurationContainerScope>): 
+ConfigurationContainer defined in org.gradle.kotlin.dsl
+                   public operator fun 
+ArtifactHandler.invoke(configuration: 
+ArtifactHandlerScope.() -> Unit): Unit defined in 
+org.gradle.kotlin.dsl
+                   public operator fun <D : Dependency> 
+DependencyCollector.invoke(dependency: TypeVariable(D), 
+configuration: Action<in TypeVariable(D)>): Unit defined 
+in org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(dependencyNotation: 
+CharSequence): Unit defined in org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(dependencyNotation: 
+CharSequence, configuration: Action<in 
+ExternalModuleDependency>): Unit defined in 
+org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(dependency: Dependency): Unit 
+defined in org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(dependencyConstraint: 
+DependencyConstraint): Unit defined in 
+org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(dependencyConstraint: 
+DependencyConstraint, configuration: Action<in 
+DependencyConstraint>): Unit defined in 
+org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(files: FileCollection): Unit 
+defined in org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(files: FileCollection, 
+configuration: Action<in FileCollectionDependency>): Unit 
+defined in org.gradle.kotlin.dsl
+                   public operator fun <D : Dependency> 
+DependencyCollector.invoke(dependency: Provider<out 
+TypeVariable(D)>, configuration: Action<in 
+TypeVariable(D)>): Unit defined in org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(dependency: Provider<out 
+Dependency>): Unit defined in org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(dependencyConstraint: 
+Provider<out DependencyConstraint>): Unit defined in 
+org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(dependencyConstraint: 
+Provider<out DependencyConstraint>, configuration: 
+Action<in DependencyConstraint>): Unit defined in 
+org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(externalModule: 
+ProviderConvertible<out 
+MinimalExternalModuleDependency>): Unit defined in 
+org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyCollector.invoke(externalModule: 
+ProviderConvertible<out MinimalExternalModuleDependency>, 
+configuration: Action<in ExternalModuleDependency>): Unit 
+defined in org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyConstraintHandler.invoke(configuration: 
+DependencyConstraintHandlerScope.() -> Unit): Unit 
+defined in org.gradle.kotlin.dsl
+                   public operator fun <D : 
+ModuleDependency> DependencyModifier.invoke(dependency: 
+TypeVariable(D)): TypeVariable(D) defined in 
+org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyModifier.invoke(dependencyNotation: 
+CharSequence): ExternalModuleDependency defined in 
+org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyModifier.invoke(dependency: Provider<out 
+ModuleDependency>): Provider<out ModuleDependency> 
+defined in org.gradle.kotlin.dsl
+                   public operator fun 
+DependencyModifier.invoke(dependency: 
+ProviderConvertible<out 
+MinimalExternalModuleDependency>): Provider<out 
+MinimalExternalModuleDependency> defined in 
+org.gradle.kotlin.dsl
+                   public inline operator fun <T> 
+ExtraPropertiesExtension.invoke(initialValueProvider: () 
+-> TypeVariable(T)): InitialValueExtraPropertyDelegateProv
+ider<TypeVariable(T)> defined in org.gradle.kotlin.dsl
+                   public operator fun <T> 
+ExtraPropertiesExtension.invoke(initialValue: 
+TypeVariable(T)): InitialValueExtraPropertyDelegateProvide
+r<TypeVariable(T)> defined in org.gradle.kotlin.dsl
+                   public operator fun <T> 
+Spec<TypeVariable(T)>.invoke(arg: TypeVariable(T)): 
+Boolean defined in org.gradle.kotlin.dsl
+                   public inline operator fun 
+TaskContainer.invoke(configuration: TaskContainerScope.() 
+-> Unit): TaskContainer defined in org.gradle.kotlin.dsl
+
+  Line 10:         version = release(36)
+                             ^ Unresolved reference. None 
+of the following candidates is applicable because of 
+receiver type mismatch: 
+                                 public open fun NamedDoma
+inObjectContainer<LibraryBuildType>.release(action: 
+LibraryBuildType.() -> Unit): Unit defined in 
+com.android.build.gradle.LibraryExtension
+
+2 errors
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log 
+output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2s

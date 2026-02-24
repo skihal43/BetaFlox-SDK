@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.betaflox.sdk-release-38:/drawable-watch-v20/common_google_signin_btn_text_light_normal.xml",
+        "source": "com.betaflox.sdk-jetified-play-services-auth-20.7.0-3:/drawable-watch-v20/common_google_signin_btn_text_light_normal.xml"
+    },
+    {
+        "merged": "com.betaflox.sdk-release-38:/drawable-watch-v20/common_google_signin_btn_text_dark_normal.xml",
+        "source": "com.betaflox.sdk-jetified-play-services-auth-20.7.0-3:/drawable-watch-v20/common_google_signin_btn_text_dark_normal.xml"
+    },
+    {
+        "merged": "com.betaflox.sdk-release-38:/drawable-watch-v20/abc_dialog_material_background.xml",
+        "source": "com.betaflox.sdk-appcompat-1.7.0-15:/drawable-watch-v20/abc_dialog_material_background.xml"
+    },
+    {
+        "merged": "com.betaflox.sdk-release-38:/drawable-watch-v20/common_google_signin_btn_text_disabled.xml",
+        "source": "com.betaflox.sdk-jetified-play-services-auth-20.7.0-3:/drawable-watch-v20/common_google_signin_btn_text_disabled.xml"
+    }
+]

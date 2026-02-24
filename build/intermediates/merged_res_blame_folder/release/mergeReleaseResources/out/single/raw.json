@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.betaflox.sdk-release-38:/raw/firebase_common_keep.xml",
+        "source": "com.betaflox.sdk-jetified-firebase-common-21.0.0-32:/raw/firebase_common_keep.xml"
+    }
+]

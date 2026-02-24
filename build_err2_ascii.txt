@@ -1,0 +1,128 @@
+> Task :preBuild UP-TO-DATE
+> Task :preDebugBuild UP-TO-DATE
+> Task :mergeDebugJniLibFolders UP-TO-DATE
+> Task :mergeDebugNativeLibs NO-SOURCE
+> Task :stripDebugDebugSymbols NO-SOURCE
+> Task :copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :generateDebugBuildConfig UP-TO-DATE
+> Task :generateDebugResValues UP-TO-DATE
+> Task :generateDebugResources UP-TO-DATE
+> Task :packageDebugResources UP-TO-DATE
+> Task :parseDebugLocalResources UP-TO-DATE
+> Task :generateDebugRFile UP-TO-DATE
+> Task :compileDebugKotlin UP-TO-DATE
+> Task :extractDebugAnnotations UP-TO-DATE
+> Task :extractDeepLinksForAarDebug UP-TO-DATE
+> Task :javaPreCompileDebug UP-TO-DATE
+> Task :compileDebugJavaWithJavac UP-TO-DATE
+> Task :mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :mergeDebugShaders UP-TO-DATE
+> Task :compileDebugShaders NO-SOURCE
+> Task :generateDebugAssets UP-TO-DATE
+> Task :packageDebugAssets UP-TO-DATE
+> Task :prepareDebugArtProfile UP-TO-DATE
+> Task :prepareLintJarForPublish UP-TO-DATE
+> Task :processDebugManifest UP-TO-DATE
+> Task :processDebugJavaRes UP-TO-DATE
+> Task :mergeDebugJavaResource UP-TO-DATE
+> Task :syncDebugLibJars UP-TO-DATE
+> Task :writeDebugAarMetadata UP-TO-DATE
+> Task :bundleDebugAar UP-TO-DATE
+> Task :assembleDebug UP-TO-DATE
+> Task :preReleaseBuild UP-TO-DATE
+> Task :mergeReleaseJniLibFolders UP-TO-DATE
+> Task :mergeReleaseNativeLibs NO-SOURCE
+> Task :stripReleaseDebugSymbols NO-SOURCE
+> Task :copyReleaseJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :generateReleaseResValues UP-TO-DATE
+> Task :extractDeepLinksForAarRelease UP-TO-DATE
+> Task :generateReleaseBuildConfig UP-TO-DATE
+> Task :generateReleaseResources UP-TO-DATE
+> Task :packageReleaseResources UP-TO-DATE
+> Task :parseReleaseLocalResources UP-TO-DATE
+> Task :generateReleaseRFile UP-TO-DATE
+> Task :compileReleaseKotlin UP-TO-DATE
+> Task :extractReleaseAnnotations UP-TO-DATE
+> Task :javaPreCompileRelease UP-TO-DATE
+> Task :compileReleaseJavaWithJavac UP-TO-DATE
+> Task :mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :mergeReleaseConsumerProguardFiles UP-TO-DATE
+> Task :mergeReleaseShaders UP-TO-DATE
+> Task :compileReleaseShaders NO-SOURCE
+> Task :generateReleaseAssets UP-TO-DATE
+> Task :packageReleaseAssets UP-TO-DATE
+> Task :prepareReleaseArtProfile UP-TO-DATE
+> Task :processReleaseManifest UP-TO-DATE
+> Task :processReleaseJavaRes UP-TO-DATE
+> Task :mergeReleaseJavaResource UP-TO-DATE
+> Task :syncReleaseLibJars UP-TO-DATE
+> Task :writeReleaseAarMetadata UP-TO-DATE
+> Task :bundleReleaseAar UP-TO-DATE
+> Task :mapReleaseSourceSetPaths UP-TO-DATE
+> Task :mergeReleaseResources UP-TO-DATE
+> Task :verifyReleaseResources UP-TO-DATE
+> Task :assembleRelease UP-TO-DATE
+> Task :assemble UP-TO-DATE
+> Task :bundleDebugLocalLintAar UP-TO-DATE
+> Task :bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :createFullJarDebug UP-TO-DATE
+> Task :preDebugAndroidTestBuild UP-TO-DATE
+> Task :generateDebugAndroidTestResValues UP-TO-DATE
+> Task :writeDebugLintModelMetadata UP-TO-DATE
+> Task :generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :extractProguardFiles UP-TO-DATE
+> Task :generateDebugLintReportModel UP-TO-DATE
+> Task :preDebugUnitTestBuild UP-TO-DATE
+> Task :generateDebugUnitTestLintModel UP-TO-DATE
+> Task :lintAnalyzeDebug UP-TO-DATE
+> Task :bundleLibCompileToJarDebug UP-TO-DATE
+> Task :generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :compileDebugUnitTestKotlin UP-TO-DATE
+> Task :javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :processDebugUnitTestJavaRes UP-TO-DATE
+.\gradlew : OpenJDK 64-Bit Server VM warning: 
+Sharing is only supported for boot loader classes 
+because bootstrap classpath has been appended
+At line:1 char:1
++ .\gradlew build > build_err2.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (OpenJ 
+   DK 64-Bit ...s been appended:String) [], Remot  
+  eException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+> Task :testDebugUnitTest
+
+SessionManagerTest > endSession clears preferences FAILED
+    java.lang.NullPointerException at SessionManagerTest.kt:65
+
+SessionManagerTest > startSession starts a new session and logs event FAILED
+    java.lang.NullPointerException at SessionManagerTest.kt:65
+
+SessionManagerTest > pauseSession logs duration and ends session FAILED
+    java.lang.NullPointerException at SessionManagerTest.kt:65
+
+> Task :lintAnalyzeDebugAndroidTest
+
+> Task :testDebugUnitTest FAILED
+
+46 tests completed, 3 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':testDebugUnitTest'.
+> There were failing tests. See the report at: file
+:///C:/Users/TESTTTT/AndroidStudioProjects/BetaFlox
+/betaflox_sdk/build/reports/tests/testDebugUnitTest
+/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 12s
+69 actionable tasks: 2 executed, 67 up-to-date

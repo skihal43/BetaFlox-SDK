@@ -1,0 +1,19 @@
+<lint-module
+    format="1"
+    dir="C:\Users\TESTTTT\AndroidStudioProjects\BetaFlox\betaflox_sdk"
+    name=":"
+    type="LIBRARY"
+    maven=":BetaFlox SDK:unspecified"
+    agpVersion="8.7.3"
+    buildFolder="build"
+    bootClassPath="C:\Users\TESTTTT\AppData\Local\Android\Sdk\platforms\android-35\android.jar;C:\Users\TESTTTT\AppData\Local\Android\Sdk\build-tools\34.0.0\core-lambda-stubs.jar"
+    javaSourceLevel="11"
+    compileTarget="android-35"
+    neverShrinking="true">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="debug"/>
+</lint-module>

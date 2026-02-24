@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.betaflox.sdk-release-38:/drawable-ldpi-v4/ic_password.png",
+        "source": "com.betaflox.sdk-jetified-credentials-1.2.0-rc01-7:/drawable-ldpi-v4/ic_password.png"
+    },
+    {
+        "merged": "com.betaflox.sdk-release-38:/drawable-ldpi-v4/ic_passkey.png",
+        "source": "com.betaflox.sdk-jetified-credentials-1.2.0-rc01-7:/drawable-ldpi-v4/ic_passkey.png"
+    },
+    {
+        "merged": "com.betaflox.sdk-release-38:/drawable-ldpi-v4/ic_other_sign_in.png",
+        "source": "com.betaflox.sdk-jetified-credentials-1.2.0-rc01-7:/drawable-ldpi-v4/ic_other_sign_in.png"
+    }
+]

@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.betaflox.sdk-release-38:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml",
+        "source": "com.betaflox.sdk-appcompat-1.7.0-15:/layout-watch-v20/abc_alert_dialog_button_bar_material.xml"
+    },
+    {
+        "merged": "com.betaflox.sdk-release-38:/layout-watch-v20/abc_alert_dialog_title_material.xml",
+        "source": "com.betaflox.sdk-appcompat-1.7.0-15:/layout-watch-v20/abc_alert_dialog_title_material.xml"
+    }
+]

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.betaflox.sdk.fraud.EmulatorDetectorTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-02-24T01:48:19" hostname="DESKTOP-PM8OTAT" time="0.055">
+  <properties/>
+  <testcase name="checkFingerprintForEmulator returns true for Genymotion signatures" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.02"/>
+  <testcase name="checkModelForEmulator returns true for emulator models" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <testcase name="EmulatorDetectionResult calculates triggered signals correctly" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.002"/>
+  <testcase name="EmulatorDetectionResult toMap contains required keys" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.003"/>
+  <testcase name="checkProductForEmulator detects SDK products" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <testcase name="checkBuildTagsForEmulator detects test and dev keys" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.0"/>
+  <testcase name="score threshold boundary detection" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.0"/>
+  <testcase name="checkBuildTagsForEmulator returns false for release keys" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <testcase name="checkHardwareForEmulator detects emulator hardware" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <testcase name="checkFingerprintForEmulator returns false for real device fingerprints" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.002"/>
+  <testcase name="checkHardwareForEmulator returns false for real hardware" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.0"/>
+  <testcase name="confidence score is sum of triggered signal weights" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.003"/>
+  <testcase name="checkFingerprintForEmulator returns true for generic emulator fingerprints" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <testcase name="EmulatorSignal holds correct values" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.0"/>
+  <testcase name="EmulatorDetectionResult toSummary returns formatted string" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.01"/>
+  <testcase name="checkFingerprintForEmulator detects Nox emulator" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <testcase name="checkProductForEmulator returns false for real products" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <testcase name="getAllEmulatorIndicators returns all false for real device" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <testcase name="default threshold is 0_75" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.0"/>
+  <testcase name="getAllEmulatorIndicators returns complete map for emulator" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.0"/>
+  <testcase name="checkModelForEmulator returns false for real device models" classname="com.betaflox.sdk.fraud.EmulatorDetectorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

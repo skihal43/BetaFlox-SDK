@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.betaflox.sdk-release-38:/layout-v26/abc_screen_toolbar.xml",
+        "source": "com.betaflox.sdk-appcompat-1.7.0-15:/layout-v26/abc_screen_toolbar.xml"
+    }
+]

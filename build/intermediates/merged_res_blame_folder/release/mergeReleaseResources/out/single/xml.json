@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.betaflox.sdk-release-38:/xml/image_share_filepaths.xml",
+        "source": "com.betaflox.sdk-browser-1.4.0-28:/xml/image_share_filepaths.xml"
+    }
+]
