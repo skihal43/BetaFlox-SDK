@@ -13,16 +13,23 @@ Android library for integrating BetaFlox tester tracking into your app.
 
 ### Step 1: Add the SDK to your project
 
-Add the AAR file to your `libs/` folder, then add to your `build.gradle.kts`:
+The BetaFlox SDK is available via JitPack. Add the JitPack repository to your root `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+Then add the dependency to your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation(files("libs/betaflox-sdk.aar"))
-    
-    // Required dependencies
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("com.github.skihal43:BetaFlox-SDK:1.0.2")
 }
 ```
 
@@ -88,8 +95,9 @@ val flags = BetaFloxSDK.getFraudFlags()
 ## Requirements
 
 - Android API 24+ (Android 7.0)
-- Firebase project with Firestore enabled
 - Kotlin 1.9+
+
+> **Note on Backend**: The BetaFlox SDK securely connects directly to our infrastructure. **You do NOT need to configure your own Firebase project or backend servers.** Just use your API Key and Campaign ID from the dashboard.
 
 ## Permissions
 
