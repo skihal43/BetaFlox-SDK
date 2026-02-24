@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id("maven-publish")
 }
 
 android {
@@ -74,4 +75,17 @@ dependencies {
 // Alias 'testClasses' to the Android unit test compilation task for compatibility
 tasks.register("testClasses") {
     dependsOn("compileDebugUnitTestKotlin")
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+                groupId = "com.github.skihal43"
+                artifactId = "BetaFlox-SDK"
+                version = "1.0.6"
+            }
+        }
+    }
 }
