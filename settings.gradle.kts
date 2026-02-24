@@ -25,4 +25,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "BetaFlox SDK"
 
-include(":BetaFlox_SDK")
