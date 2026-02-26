@@ -11,7 +11,8 @@ import android.util.Log
  */
 internal class AppLifecycleTracker(
     private val sessionManager: SessionManager,
-    private val heartbeatManager: HeartbeatManager
+    private val heartbeatManager: HeartbeatManager,
+    private val firebaseSync: com.betaflox.sdk.network.FirebaseSync? = null
 ) : Application.ActivityLifecycleCallbacks {
     
     companion object {
@@ -54,6 +55,9 @@ internal class AppLifecycleTracker(
             Log.d(TAG, "App entered background")
             sessionManager.pauseSession()
             heartbeatManager.stop()
+            // Sync events immediately to ensure daily_checkin reaches Firestore
+            // before the process can be killed
+            firebaseSync?.syncNow()
         }
     }
     

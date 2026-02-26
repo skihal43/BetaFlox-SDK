@@ -23,9 +23,10 @@ internal class SessionManager(
     companion object {
         private const val TAG = "SessionManager"
         const val DAILY_MIN_DURATION = 180L // 3 minutes minimum for daily completion
-        private const val KEY_LAST_CHECKIN_DATE = "last_checkin_date"
+        private const val KEY_LAST_CHECKIN_TIME = "last_checkin_time"
         private const val KEY_DAILY_DURATION = "daily_accumulated_duration"
         private const val KEY_DAILY_DURATION_DATE = "daily_duration_date"
+        private const val CHECKIN_COOLDOWN_MS = 22 * 60 * 60 * 1000L // 22 hours
     }
     
     private val prefs = context.getSharedPreferences(SDKConfig.PREFS_NAME, Context.MODE_PRIVATE)
@@ -34,10 +35,10 @@ internal class SessionManager(
     private var dailyTotalDuration: Long = 0
     private var currentLaunchDuration: Long = 0
     private var isSessionActive = false
-    private var lastCheckinDate: String = ""
+    private var lastCheckinTimestamp: Long = 0L
     
     init {
-        lastCheckinDate = prefs.getString(KEY_LAST_CHECKIN_DATE, "") ?: ""
+        lastCheckinTimestamp = prefs.getLong(KEY_LAST_CHECKIN_TIME, 0L)
         restoreDailyDuration()
     }
     
@@ -227,19 +228,22 @@ internal class SessionManager(
 
     /**
      * Check if daily task is completed based on duration.
+     * Uses a 22-hour cooldown instead of date-based lock to allow retries
+     * if the previous check-in event was not synced to Firestore.
      */
     fun checkDailyCompletion() {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val now = System.currentTimeMillis()
+        val timeSinceLastCheckin = now - lastCheckinTimestamp
         
-        if (today != lastCheckinDate && getDailySessionDuration() >= DAILY_MIN_DURATION) {
+        if (timeSinceLastCheckin >= CHECKIN_COOLDOWN_MS && getDailySessionDuration() >= DAILY_MIN_DURATION) {
             // Calculate which day of the campaign this is
             val dayIndex = calculateCampaignDay()
             if (dayIndex in 0..13) {
                 eventLogger.logDailyCheckin(dayIndex)
-                lastCheckinDate = today
+                lastCheckinTimestamp = now
                 
                 // Store in SharedPreferences for persistence
-                prefs.edit().putString(KEY_LAST_CHECKIN_DATE, today).apply()
+                prefs.edit().putLong(KEY_LAST_CHECKIN_TIME, now).apply()
                 Log.d(TAG, "Daily check-in completed for day $dayIndex")
             }
         }
