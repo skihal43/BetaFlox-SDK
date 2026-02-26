@@ -46,7 +46,7 @@ import android.content.Intent
 object BetaFloxSDK {
     
     private const val TAG = "BetaFloxSDK"
-    const val SDK_VERSION = "1.0.7"
+    const val SDK_VERSION = "1.0.8"
     
     private var isInitialized = false
     private var trackingEnabled = true

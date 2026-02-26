@@ -29,7 +29,7 @@ Then add the dependency to your app's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.github.skihal43:BetaFlox-SDK:1.0.7")
+    implementation("com.github.skihal43:BetaFlox-SDK:1.0.8")
 }
 ```
 
