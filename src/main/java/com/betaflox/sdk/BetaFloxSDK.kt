@@ -322,13 +322,40 @@ object BetaFloxSDK {
         
         config.testerId = testerId
         
-        // Store tester ID and device hash
+        // Store tester ID in SharedPreferences for restoration on next launch
         val prefs = appContext.getSharedPreferences(SDKConfig.PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(SDKConfig.KEY_TESTER_ID, testerId)
             .apply()
         
         Log.i(TAG, "Tester ID set: $testerId")
+        
+        // Also write to device_mappings using the SDK's own hash.
+        // ANDROID_ID is scoped per app signing key on Android 8+,
+        // so the BetaFlox app's hash differs from the SDK's hash.
+        // Writing here ensures future SDK lookups will find the mapping.
+        try {
+            val sdkHash = deviceFingerprint.getHash()
+            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance(
+                com.google.firebase.FirebaseApp.getInstance("betaflox_sdk")
+            )
+            val mapping = hashMapOf(
+                "testerId" to testerId,
+                "campaignId" to config.campaignId,
+                "source" to "sdk_setTesterId",
+                "createdAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+            )
+            firestore.collection("device_mappings").document(sdkHash)
+                .set(mapping, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener {
+                    Log.d(TAG, "Cached device_mapping for SDK hash: ${sdkHash.take(8)}...")
+                }
+                .addOnFailureListener { e ->
+                    Log.w(TAG, "Failed to cache device_mapping: ${e.message}")
+                }
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not write device_mapping: ${e.message}")
+        }
         
         // Start syncing events to Firebase
         firebaseSync.startSync()
@@ -628,38 +655,68 @@ object BetaFloxSDK {
     }
     
     private fun resolveTesterIdFromDeviceHash(firestore: com.google.firebase.firestore.FirebaseFirestore, deviceHash: String) {
-        // Use the BASE hash (without app signature) to match the BetaFlox app's DeviceHashUtil hash.
-        // The BetaFlox app stores device_mappings with its hash (no app signature).
-        val baseHash = deviceFingerprint.getBaseHash()
-        Log.d(TAG, "Validating tester ID against device_mappings (base hash: ${baseHash.take(8)}...)")
+        // Use the SDK's OWN hash for device_mappings lookup.
+        // setTesterId() writes to device_mappings using this hash, so subsequent launches find it.
+        // Note: we can't use the BetaFlox app's hash because ANDROID_ID is scoped per signing key on Android 8+.
+        val sdkHash = deviceFingerprint.getHash()
+        Log.d(TAG, "Looking up device_mappings with SDK hash: ${sdkHash.take(8)}...")
         
-        firestore.collection("device_mappings").document(baseHash).get()
+        firestore.collection("device_mappings").document(sdkHash).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val mappedTesterId = document.getString("testerId")
                     if (!mappedTesterId.isNullOrBlank()) {
-                        Log.i(TAG, "Validated tester ID from device_mappings: $mappedTesterId")
+                        Log.i(TAG, "Resolved tester ID from device_mappings: $mappedTesterId")
                         setTesterId(mappedTesterId)
                     } else {
-                        Log.d(TAG, "Device mapping found but no testerId — clearing stale cache")
-                        clearStaleTesterIdCache()
+                        Log.d(TAG, "Device mapping found but no testerId")
+                        validateOrClearSavedTesterId(firestore)
                     }
                 } else {
-                    // No device_mappings entry means this device hasn't joined any campaign.
-                    // Clear any stale testerId from SharedPreferences to prevent
-                    // sending events with an old testerId from a previous campaign.
-                    Log.d(TAG, "No device mapping found — clearing stale testerId cache")
+                    Log.d(TAG, "No device_mapping for SDK hash — validating saved testerId...")
+                    validateOrClearSavedTesterId(firestore)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Failed to look up device_mappings: ${e.message}")
+            }
+    }
+    
+    /**
+     * If SharedPreferences has a saved testerId, validate it against campaign_testers.
+     * Only clear if the tester is NOT a participant in the current campaign.
+     * This prevents clearing valid testerIds set via handleLaunchIntent().
+     */
+    private fun validateOrClearSavedTesterId(firestore: com.google.firebase.firestore.FirebaseFirestore) {
+        val savedTesterId = config.testerId
+        if (savedTesterId.isNullOrBlank()) {
+            Log.d(TAG, "No saved testerId to validate")
+            return
+        }
+        
+        // Check if this testerId actually belongs to the current campaign
+        val recordId = "${config.campaignId}_${savedTesterId}".replace("/", "_")
+        firestore.collection("campaign_testers").document(recordId).get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    Log.i(TAG, "Validated: saved testerId $savedTesterId is a participant in campaign ${config.campaignId}")
+                    // testerId is valid — keep it and write device_mapping for future lookups
+                    setTesterId(savedTesterId)
+                } else {
+                    Log.i(TAG, "Saved testerId $savedTesterId is NOT in campaign ${config.campaignId} — clearing stale cache")
                     clearStaleTesterIdCache()
                 }
             }
             .addOnFailureListener { e ->
-                Log.w(TAG, "Failed to validate tester ID: ${e.message}")
+                Log.w(TAG, "Failed to validate testerId: ${e.message}")
+                // On failure, keep the existing testerId (better to have events with potentially stale ID
+                // than to lose all events)
             }
     }
     
     /**
      * Clear stale testerId from SharedPreferences and config.
-     * Called when device_mappings lookup shows this device is NOT bound to any campaign.
+     * Called only when server-side validation confirms this tester is NOT in the current campaign.
      */
     private fun clearStaleTesterIdCache() {
         if (!config.testerId.isNullOrBlank()) {
