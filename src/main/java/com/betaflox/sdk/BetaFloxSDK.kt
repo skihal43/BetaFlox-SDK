@@ -633,10 +633,13 @@ object BetaFloxSDK {
             return
         }
 
-        Log.d(TAG, "Attempting to resolve tester ID from device hash: ${deviceHash.take(8)}...")
+        // Use the BASE hash (without app signature) to match the BetaFlox app's DeviceHashUtil hash.
+        // The BetaFlox app stores device_mappings with its hash (no app signature).
+        // The SDK's getHash() includes app signature, so it would never match.
+        val baseHash = deviceFingerprint.getBaseHash()
+        Log.d(TAG, "Attempting to resolve tester ID from base device hash: ${baseHash.take(8)}...")
         
-        // Strategy 1: Look up device_mappings by this SDK's deviceHash
-        firestore.collection("device_mappings").document(deviceHash).get()
+        firestore.collection("device_mappings").document(baseHash).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val testerId = document.getString("testerId")
@@ -645,58 +648,13 @@ object BetaFloxSDK {
                         setTesterId(testerId)
                     } else {
                         Log.d(TAG, "Device mapping found but no testerId")
-                        // Fallback to campaign_testers
-                        resolveTesterIdFromCampaignTesters(firestore, deviceHash)
                     }
                 } else {
-                    Log.d(TAG, "No device mapping for this hash, trying campaign_testers...")
-                    // Strategy 2: Look up campaign_testers by campaignId
-                    resolveTesterIdFromCampaignTesters(firestore, deviceHash)
+                    Log.d(TAG, "No device mapping found for base hash: ${baseHash.take(8)}...")
                 }
             }
             .addOnFailureListener { e ->
                 Log.w(TAG, "Failed to resolve tester ID: ${e.message}")
-                resolveTesterIdFromCampaignTesters(firestore, deviceHash)
-            }
-    }
-    
-    /**
-     * Fallback: resolve testerId by looking up campaign_testers records for this campaignId.
-     * This handles the case where binding was done from the BetaFlox app (different device hash).
-     */
-    private fun resolveTesterIdFromCampaignTesters(firestore: com.google.firebase.firestore.FirebaseFirestore, deviceHash: String) {
-        if (config.testerId != null && config.testerId!!.isNotBlank()) return
-        
-        firestore.collection("campaign_testers")
-            .whereEqualTo("campaignId", config.campaignId)
-            .whereEqualTo("status", "active")
-            .limit(1)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                if (!snapshot.isEmpty) {
-                    val testerId = snapshot.documents[0].getString("testerId")
-                    if (!testerId.isNullOrBlank()) {
-                        Log.i(TAG, "Resolved tester ID from campaign_testers: $testerId")
-                        setTesterId(testerId)
-                        
-                        // Cache this mapping so future lookups use the fast path
-                        val mapping = hashMapOf(
-                            "testerId" to testerId,
-                            "campaignId" to config.campaignId,
-                            "source" to "sdk_campaign_testers_resolution"
-                        )
-                        firestore.collection("device_mappings").document(deviceHash)
-                            .set(mapping, com.google.firebase.firestore.SetOptions.merge())
-                            .addOnSuccessListener {
-                                Log.d(TAG, "Cached device_mapping for SDK hash")
-                            }
-                    }
-                } else {
-                    Log.d(TAG, "No active campaign_testers record for campaign ${config.campaignId}")
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.w(TAG, "Failed to resolve from campaign_testers: ${e.message}")
             }
     }
     

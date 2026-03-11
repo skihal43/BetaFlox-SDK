@@ -66,8 +66,8 @@ internal class DeviceFingerprint(private val context: Context) {
             return persistedHash
         }
         
-        // Generate new hash
-        val hash = generateHash()
+        // Generate new hash (WITH app signature for fraud detection)
+        val hash = generateHash(includeAppSignature = true)
         
         // Persist the hash
         prefs.edit().putString(SDKConfig.KEY_DEVICE_HASH, hash).apply()
@@ -77,8 +77,17 @@ internal class DeviceFingerprint(private val context: Context) {
         return hash
     }
     
+    /**
+     * Get a base device hash WITHOUT the app signature.
+     * This matches the BetaFlox app's DeviceHashUtil hash, enabling
+     * cross-app device_mappings lookups on the same physical device.
+     */
+    fun getBaseHash(): String {
+        return generateHash(includeAppSignature = false)
+    }
+    
     @SuppressLint("HardwareIds")
-    private fun generateHash(): String {
+    private fun generateHash(includeAppSignature: Boolean = true): String {
         val components = StringBuilder()
         
         // Android ID (unique per user/device)
@@ -103,8 +112,10 @@ internal class DeviceFingerprint(private val context: Context) {
         components.append(Build.MODEL)
         components.append(Build.PRODUCT)
         
-        // App Signature (binds to specific app)
-        components.append(getAppSignature())
+        // App Signature (only for fraud detection hash, NOT for cross-app matching)
+        if (includeAppSignature) {
+            components.append(getAppSignature())
+        }
         
         // Supported ABIs
         
