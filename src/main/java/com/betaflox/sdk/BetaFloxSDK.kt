@@ -201,14 +201,12 @@ object BetaFloxSDK {
             (appContext as Application).registerActivityLifecycleCallbacks(
                 object : Application.ActivityLifecycleCallbacks {
                     override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {
-                        val launchTesterId = activity.intent?.getStringExtra("betaflox_tester_id")
-                        if (!launchTesterId.isNullOrBlank() && config.testerId.isNullOrBlank()) {
-                            Log.i(TAG, "Auto-read tester ID from Activity intent: $launchTesterId")
-                            setTesterId(launchTesterId)
-                        }
+                        checkIntentForTesterId(activity)
                     }
                     override fun onActivityStarted(activity: android.app.Activity) {}
-                    override fun onActivityResumed(activity: android.app.Activity) {}
+                    override fun onActivityResumed(activity: android.app.Activity) {
+                        checkIntentForTesterId(activity)
+                    }
                     override fun onActivityPaused(activity: android.app.Activity) {}
                     override fun onActivityStopped(activity: android.app.Activity) {}
                     override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
@@ -230,7 +228,25 @@ object BetaFloxSDK {
         // Start syncing events to Firebase immediately
         firebaseSync.startSync()
         
+        // If initialize() is called from an Activity's onCreate(), the onActivityCreated callback 
+        // will not trigger for that Activity. We check it manually here just in case.
+        if (context is android.app.Activity) {
+            checkIntentForTesterId(context)
+        }
+        
         Log.i(TAG, "SDK initialized for campaign: $campaignId (tracking: $trackingEnabled)")
+    }
+    
+    private fun checkIntentForTesterId(activity: android.app.Activity) {
+        try {
+            val launchTesterId = activity.intent?.getStringExtra("betaflox_tester_id")
+            if (!launchTesterId.isNullOrBlank() && config.testerId.isNullOrBlank() && isInitialized) {
+                Log.i(TAG, "Auto-read tester ID from Activity intent: $launchTesterId")
+                setTesterId(launchTesterId)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to read intent extra: ${e.message}")
+        }
     }
     
     /**
