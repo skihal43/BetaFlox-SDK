@@ -635,22 +635,92 @@ object BetaFloxSDK {
 
         Log.d(TAG, "Attempting to resolve tester ID from device hash: ${deviceHash.take(8)}...")
         
+        // Strategy 1: Look up device_mappings by this SDK's deviceHash
         firestore.collection("device_mappings").document(deviceHash).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val testerId = document.getString("testerId")
                     if (!testerId.isNullOrBlank()) {
-                        Log.i(TAG, "Auto-resolved tester ID: $testerId")
+                        Log.i(TAG, "Auto-resolved tester ID from device_mappings: $testerId")
                         setTesterId(testerId)
                     } else {
-                         Log.d(TAG, "Device mapping found but no testerId")
+                        Log.d(TAG, "Device mapping found but no testerId")
+                        // Fallback to campaign_testers
+                        resolveTesterIdFromCampaignTesters(firestore, deviceHash)
                     }
                 } else {
-                    Log.d(TAG, "No device mapping found for this device")
+                    Log.d(TAG, "No device mapping for this hash, trying campaign_testers...")
+                    // Strategy 2: Look up campaign_testers by campaignId
+                    resolveTesterIdFromCampaignTesters(firestore, deviceHash)
                 }
             }
             .addOnFailureListener { e ->
                 Log.w(TAG, "Failed to resolve tester ID: ${e.message}")
+                resolveTesterIdFromCampaignTesters(firestore, deviceHash)
             }
+    }
+    
+    /**
+     * Fallback: resolve testerId by looking up campaign_testers records for this campaignId.
+     * This handles the case where binding was done from the BetaFlox app (different device hash).
+     */
+    private fun resolveTesterIdFromCampaignTesters(firestore: com.google.firebase.firestore.FirebaseFirestore, deviceHash: String) {
+        if (config.testerId != null && config.testerId!!.isNotBlank()) return
+        
+        firestore.collection("campaign_testers")
+            .whereEqualTo("campaignId", config.campaignId)
+            .whereEqualTo("status", "active")
+            .limit(1)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (!snapshot.isEmpty) {
+                    val testerId = snapshot.documents[0].getString("testerId")
+                    if (!testerId.isNullOrBlank()) {
+                        Log.i(TAG, "Resolved tester ID from campaign_testers: $testerId")
+                        setTesterId(testerId)
+                        
+                        // Cache this mapping so future lookups use the fast path
+                        val mapping = hashMapOf(
+                            "testerId" to testerId,
+                            "campaignId" to config.campaignId,
+                            "source" to "sdk_campaign_testers_resolution"
+                        )
+                        firestore.collection("device_mappings").document(deviceHash)
+                            .set(mapping, com.google.firebase.firestore.SetOptions.merge())
+                            .addOnSuccessListener {
+                                Log.d(TAG, "Cached device_mapping for SDK hash")
+                            }
+                    }
+                } else {
+                    Log.d(TAG, "No active campaign_testers record for campaign ${config.campaignId}")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Failed to resolve from campaign_testers: ${e.message}")
+            }
+    }
+    
+    /**
+     * Handle a launch intent from the BetaFlox app.
+     * The BetaFlox app passes testerId and campaignId as extras when launching the target app.
+     * Call this from your Activity's onCreate with the launch intent.
+     */
+    @JvmStatic
+    fun handleLaunchIntent(intent: android.content.Intent?) {
+        if (intent == null) return
+        
+        // Check for testerId passed by BetaFlox app
+        val launchTesterId = intent.getStringExtra("betaflox_tester_id")
+        if (!launchTesterId.isNullOrBlank() && isInitialized) {
+            if (config.testerId.isNullOrBlank()) {
+                Log.i(TAG, "Received tester ID from BetaFlox launch intent: $launchTesterId")
+                setTesterId(launchTesterId)
+            }
+        }
+        
+        // Also try the deep link path
+        if (intent.action == android.content.Intent.ACTION_VIEW && intent.data != null) {
+            handleDeepLink(intent)
+        }
     }
 }
