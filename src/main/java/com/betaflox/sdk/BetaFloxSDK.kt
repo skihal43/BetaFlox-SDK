@@ -195,6 +195,26 @@ object BetaFloxSDK {
         // Register lifecycle callbacks
         if (appContext is Application) {
             (appContext as Application).registerActivityLifecycleCallbacks(lifecycleTracker)
+            
+            // Auto-read betaflox_tester_id from launch intents.
+            // This removes the need for developers to call handleLaunchIntent() manually.
+            (appContext as Application).registerActivityLifecycleCallbacks(
+                object : Application.ActivityLifecycleCallbacks {
+                    override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {
+                        val launchTesterId = activity.intent?.getStringExtra("betaflox_tester_id")
+                        if (!launchTesterId.isNullOrBlank() && config.testerId.isNullOrBlank()) {
+                            Log.i(TAG, "Auto-read tester ID from Activity intent: $launchTesterId")
+                            setTesterId(launchTesterId)
+                        }
+                    }
+                    override fun onActivityStarted(activity: android.app.Activity) {}
+                    override fun onActivityResumed(activity: android.app.Activity) {}
+                    override fun onActivityPaused(activity: android.app.Activity) {}
+                    override fun onActivityStopped(activity: android.app.Activity) {}
+                    override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
+                    override fun onActivityDestroyed(activity: android.app.Activity) {}
+                }
+            )
         }
         
         // Record first install time if not already set
