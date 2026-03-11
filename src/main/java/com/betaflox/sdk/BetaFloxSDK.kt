@@ -628,34 +628,49 @@ object BetaFloxSDK {
     }
     
     private fun resolveTesterIdFromDeviceHash(firestore: com.google.firebase.firestore.FirebaseFirestore, deviceHash: String) {
-        // If tester ID is already set, don't overwrite it
-        if (config.testerId != null && config.testerId!!.isNotBlank()) {
-            return
-        }
-
         // Use the BASE hash (without app signature) to match the BetaFlox app's DeviceHashUtil hash.
         // The BetaFlox app stores device_mappings with its hash (no app signature).
-        // The SDK's getHash() includes app signature, so it would never match.
         val baseHash = deviceFingerprint.getBaseHash()
-        Log.d(TAG, "Attempting to resolve tester ID from base device hash: ${baseHash.take(8)}...")
+        Log.d(TAG, "Validating tester ID against device_mappings (base hash: ${baseHash.take(8)}...)")
         
         firestore.collection("device_mappings").document(baseHash).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val testerId = document.getString("testerId")
-                    if (!testerId.isNullOrBlank()) {
-                        Log.i(TAG, "Auto-resolved tester ID from device_mappings: $testerId")
-                        setTesterId(testerId)
+                    val mappedTesterId = document.getString("testerId")
+                    if (!mappedTesterId.isNullOrBlank()) {
+                        Log.i(TAG, "Validated tester ID from device_mappings: $mappedTesterId")
+                        setTesterId(mappedTesterId)
                     } else {
-                        Log.d(TAG, "Device mapping found but no testerId")
+                        Log.d(TAG, "Device mapping found but no testerId — clearing stale cache")
+                        clearStaleTesterIdCache()
                     }
                 } else {
-                    Log.d(TAG, "No device mapping found for base hash: ${baseHash.take(8)}...")
+                    // No device_mappings entry means this device hasn't joined any campaign.
+                    // Clear any stale testerId from SharedPreferences to prevent
+                    // sending events with an old testerId from a previous campaign.
+                    Log.d(TAG, "No device mapping found — clearing stale testerId cache")
+                    clearStaleTesterIdCache()
                 }
             }
             .addOnFailureListener { e ->
-                Log.w(TAG, "Failed to resolve tester ID: ${e.message}")
+                Log.w(TAG, "Failed to validate tester ID: ${e.message}")
             }
+    }
+    
+    /**
+     * Clear stale testerId from SharedPreferences and config.
+     * Called when device_mappings lookup shows this device is NOT bound to any campaign.
+     */
+    private fun clearStaleTesterIdCache() {
+        if (!config.testerId.isNullOrBlank()) {
+            Log.i(TAG, "Clearing stale testerId: ${config.testerId}")
+            config.testerId = null
+            val prefs = appContext.getSharedPreferences(SDKConfig.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+            prefs.edit()
+                .remove(SDKConfig.KEY_TESTER_ID)
+                .remove(SDKConfig.KEY_BOUND_TESTER_ID)
+                .apply()
+        }
     }
     
     /**

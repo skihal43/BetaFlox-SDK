@@ -53,6 +53,12 @@ internal class EventLogger(
      * Log daily check-in event.
      */
     fun logDailyCheckin(dayIndex: Int) {
+        // Don't log events if testerId is not set (device hasn't joined any campaign)
+        if (config.testerId.isNullOrBlank()) {
+            Log.d(TAG, "Skipping daily_checkin event: no testerId")
+            return
+        }
+        
         val event = SDKEvent(
             id = UUID.randomUUID().toString(),
             eventType = EventTypes.DAILY_CHECKIN,
@@ -87,6 +93,12 @@ internal class EventLogger(
      * @param data Additional event data
      */
     fun logEvent(eventType: String, data: Map<String, Any> = emptyMap()) {
+        // Don't log events if testerId is not set (device hasn't joined any campaign)
+        if (config.testerId.isNullOrBlank()) {
+            Log.d(TAG, "Skipping $eventType event: no testerId")
+            return
+        }
+        
         val event = SDKEvent(
             id = UUID.randomUUID().toString(),
             eventType = eventType,
