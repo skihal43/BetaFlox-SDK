@@ -6,5 +6,10 @@
     
     <!-- Optional: For more accurate fraud detection -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Required to query the Tester ID from the BetaFlox App on Android 11+ -->
+    <queries>
+        <provider android:authorities="com.betaflox.app.testerinfo" />
+    </queries>
 
 </manifest>

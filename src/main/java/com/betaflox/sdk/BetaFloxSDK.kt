@@ -239,13 +239,31 @@ object BetaFloxSDK {
     
     private fun checkIntentForTesterId(activity: android.app.Activity) {
         try {
-            val launchTesterId = activity.intent?.getStringExtra("betaflox_tester_id")
-            if (!launchTesterId.isNullOrBlank() && config.testerId.isNullOrBlank() && isInitialized) {
-                Log.i(TAG, "Auto-read tester ID from Activity intent: $launchTesterId")
-                setTesterId(launchTesterId)
+            var testerIdToSet: String? = activity.intent?.getStringExtra("betaflox_tester_id")
+            
+            // If not found in intent, try to query the BetaFlox app's ContentProvider directly
+            if (testerIdToSet.isNullOrBlank()) {
+                val uri = android.net.Uri.parse("content://com.betaflox.app.testerinfo/current_tester")
+                activity.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val index = cursor.getColumnIndex("tester_id")
+                        if (index >= 0) {
+                            val providerTesterId = cursor.getString(index)
+                            if (!providerTesterId.isNullOrBlank()) {
+                                Log.i(TAG, "Restored tester ID from BetaFlox ContentProvider: $providerTesterId")
+                                testerIdToSet = providerTesterId
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (!testerIdToSet.isNullOrBlank() && config.testerId.isNullOrBlank() && isInitialized) {
+                Log.i(TAG, "Auto-read tester ID: $testerIdToSet")
+                setTesterId(testerIdToSet!!)
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to read intent extra: ${e.message}")
+            Log.w(TAG, "Failed to resolve tester ID automatically: ${e.message}")
         }
     }
     
