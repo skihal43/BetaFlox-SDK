@@ -6,6 +6,7 @@ import android.util.Log
 import com.betaflox.sdk.config.FirebaseConfig
 import com.betaflox.sdk.config.SDKConfig
 import com.betaflox.sdk.fraud.DeviceFingerprint
+import com.betaflox.sdk.fraud.EmulatorDetector
 import com.betaflox.sdk.fraud.RapidSwitchingDetector
 import com.betaflox.sdk.fraud.ReinstallDetector
 import com.betaflox.sdk.fraud.RootDetector
@@ -24,10 +25,20 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.withTimeoutOrNull
 import com.betaflox.sdk.binding.JoinTokenManager
 import com.google.firebase.functions.FirebaseFunctions
 import android.widget.Toast
 import android.content.Intent
+import java.security.SecureRandom
+import android.util.Base64
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * BetaFlox SDK main entry point.
@@ -43,10 +54,22 @@ import android.content.Intent
  * }
  * ```
  */
+/**
+ * Represents the current state of the server-side device verification.
+ */
+sealed class VerificationState {
+    /** Verification is in progress or has not started. */
+    object Pending : VerificationState()
+    /** Verification completed successfully with a verdict. */
+    data class Complete(val verdict: SessionVerdict) : VerificationState()
+    /** Verification failed (network, timeout, server error). */
+    data class Failed(val reason: String) : VerificationState()
+}
+
 object BetaFloxSDK {
     
     private const val TAG = "BetaFloxSDK"
-    const val SDK_VERSION = "1.0.9"
+    const val SDK_VERSION = "1.0.17"
     
     private var isInitialized = false
     private var trackingEnabled = true
@@ -67,6 +90,13 @@ object BetaFloxSDK {
     private lateinit var signalUploader: SignalUploader
     private lateinit var playIntegrityChecker: PlayIntegrityChecker
     private var currentSessionId: String? = null
+    
+    // Emulator detection (local fast-filter)
+    private lateinit var emulatorDetector: EmulatorDetector
+    
+    // Verification state (for blocking sensitive operations until server ACK)
+    private val _verificationState = MutableStateFlow<VerificationState>(VerificationState.Pending)
+    val verificationState: StateFlow<VerificationState> = _verificationState.asStateFlow()
     
     // Fraud signal collectors (legacy - kept for device hash and reinstall detection)
     private lateinit var rootDetector: RootDetector
@@ -148,6 +178,7 @@ object BetaFloxSDK {
         deviceFingerprint = DeviceFingerprint(appContext)
         reinstallDetector = ReinstallDetector(appContext)
         rapidSwitchingDetector = RapidSwitchingDetector(appContext)
+        emulatorDetector = EmulatorDetector(appContext)
         
         // Auto sign-in anonymously to enable Firestore writes (and reads for resolution)
         if (auth.currentUser == null) {
@@ -227,6 +258,11 @@ object BetaFloxSDK {
         
         // Start syncing events to Firebase immediately
         firebaseSync.startSync()
+        
+        // Auto-launch server-side signal collection & verification in the background
+        CoroutineScope(Dispatchers.IO).launch {
+            performSignalVerification()
+        }
         
         // If initialize() is called from an Activity's onCreate(), the onActivityCreated callback 
         // will not trigger for that Activity. We check it manually here just in case.
@@ -447,14 +483,10 @@ object BetaFloxSDK {
      * @return Map of local fraud signals
      */
     @JvmStatic
-    @Deprecated(
-        message = "Use collectAndUploadSignals() for server-side risk scoring",
-        replaceWith = ReplaceWith("collectAndUploadSignals()")
-    )
     fun getFraudFlags(): Map<String, Boolean> {
         checkInitialized()
-        // NOTE: isEmulator is NO LONGER returned - verdicts are server-side only
         return mapOf(
+            "isEmulator" to emulatorDetector.isEmulator(),
             "isRooted" to rootDetector.isRooted(),
             "isReinstall" to reinstallDetector.isReinstall(),
             "rapidSwitching" to rapidSwitchingDetector.isRapidSwitching()
@@ -481,6 +513,7 @@ object BetaFloxSDK {
         }
         
         val signals = signalCollector.collectSignals()
+        // Set initial session ID from signals (for synchronous return)
         currentSessionId = signals.sessionSignals.sessionId
         
         // Upload signals asynchronously
@@ -495,14 +528,25 @@ object BetaFloxSDK {
                 )
                 
                 if (sessionId != null) {
+                    // Update to the confirmed Firestore document ID
+                    currentSessionId = sessionId
                     Log.i(TAG, "Signals uploaded to session: $sessionId")
                     
                     // Check Play Integrity and update session
-                    if (playIntegrityChecker.isAvailable()) {
-                        val integritySignals = playIntegrityChecker.checkIntegrity(
-                            nonce = java.util.UUID.randomUUID().toString()
-                        )
-                        signalUploader.updateIntegritySignals(sessionId, integritySignals)
+                    try {
+                        if (playIntegrityChecker.isAvailable()) {
+                            val integritySignals = playIntegrityChecker.checkIntegrity(
+                                nonce = java.util.UUID.randomUUID().toString()
+                            )
+                            signalUploader.updateIntegritySignals(sessionId, integritySignals)
+                        } else {
+                            // GMS unavailable — mark for stricter backend scrutiny
+                            Log.w(TAG, "Play Integrity unavailable — GMS_UNAVAILABLE")
+                            signalUploader.updateIntegrityStatus(sessionId, "GMS_UNAVAILABLE")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Play Integrity error: ${e.message}")
+                        signalUploader.updateIntegrityStatus(sessionId, "GMS_UNAVAILABLE")
                     }
                 } else {
                     Log.e(TAG, "Failed to upload signals")
@@ -514,6 +558,141 @@ object BetaFloxSDK {
         
         return currentSessionId
     }
+    
+    /**
+     * Generate a cryptographically secure session ID (128-bit entropy).
+     * Uses SecureRandom + Base64 URL-safe encoding to prevent collisions and prediction.
+     */
+    private fun generateSecureSessionId(): String {
+        val bytes = ByteArray(16)
+        SecureRandom().nextBytes(bytes)
+        return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+    }
+    
+    /**
+     * Perform the background signal verification workflow.
+     * 1. Collect and upload signals
+     * 2. Wait for the backend to process them (poll for verdict)
+     * 3. Update the VerificationState flow
+     */
+    private suspend fun performSignalVerification() {
+        try {
+            val testerId = config.testerId
+            if (testerId.isNullOrBlank()) {
+                Log.d(TAG, "No tester ID yet — skipping signal verification")
+                _verificationState.value = VerificationState.Failed("No tester ID")
+                return
+            }
+            
+            val signals = signalCollector.collectSignals()
+            val sessionId = signalUploader.uploadSignals(
+                userId = testerId,
+                authUid = auth.currentUser?.uid,
+                appId = appContext.packageName,
+                campaignId = config.campaignId,
+                signals = signals
+            )
+            
+            if (sessionId == null) {
+                _verificationState.value = VerificationState.Failed("Signal upload failed")
+                return
+            }
+            
+            currentSessionId = sessionId
+            Log.i(TAG, "Auto-verification: signals uploaded to $sessionId")
+            
+            // Upload Play Integrity token (or mark GMS_UNAVAILABLE)
+            try {
+                if (playIntegrityChecker.isAvailable()) {
+                    val integritySignals = playIntegrityChecker.checkIntegrity(
+                        nonce = java.util.UUID.randomUUID().toString()
+                    )
+                    signalUploader.updateIntegritySignals(sessionId, integritySignals)
+                } else {
+                    signalUploader.updateIntegrityStatus(sessionId, "GMS_UNAVAILABLE")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Play Integrity error during auto-verification: ${e.message}")
+                signalUploader.updateIntegrityStatus(sessionId, "GMS_UNAVAILABLE")
+            }
+            
+            // Poll for backend verdict (Cloud Function processes the session)
+            val maxRetries = 10
+            val delayMs = 1000L
+            for (i in 1..maxRetries) {
+                kotlinx.coroutines.delay(delayMs)
+                val verdict = signalUploader.getSessionVerdict(sessionId)
+                if (verdict != null) {
+                    _verificationState.value = VerificationState.Complete(verdict)
+                    Log.i(TAG, "Auto-verification complete: ${verdict.verdict} (score: ${verdict.riskScore})")
+                    return
+                }
+            }
+            
+            // Timeout — backend hasn't processed yet
+            _verificationState.value = VerificationState.Failed("Verification timeout")
+            Log.w(TAG, "Auto-verification timed out waiting for backend verdict")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Auto-verification error: ${e.message}")
+            _verificationState.value = VerificationState.Failed(e.message ?: "Unknown error")
+        }
+    }
+    
+    /**
+     * Block until the server-side verification completes or times out.
+     * Used by the app to gate sensitive operations (e.g., joining campaigns).
+     * 
+     * SECURITY: Always fails CLOSED — if timeout occurs, returns failure.
+     * 
+     * @param timeout Maximum time to wait for verification (default: 10 seconds)
+     * @return Result containing the SessionVerdict, or failure on timeout/error
+     */
+    @JvmStatic
+    suspend fun awaitVerification(timeout: Duration = 10.seconds): Result<SessionVerdict> {
+        // If already completed, return immediately
+        when (val current = _verificationState.value) {
+            is VerificationState.Complete -> return Result.success(current.verdict)
+            is VerificationState.Failed -> {
+                // Re-trigger verification if it previously failed
+                _verificationState.value = VerificationState.Pending
+                CoroutineScope(Dispatchers.IO).launch { performSignalVerification() }
+            }
+            else -> { /* Pending — just wait */ }
+        }
+        
+        val result = withTimeoutOrNull(timeout.inWholeMilliseconds) {
+            _verificationState
+                .filter { it !is VerificationState.Pending }
+                .first()
+        }
+        
+        return when (result) {
+            is VerificationState.Complete -> Result.success(result.verdict)
+            is VerificationState.Failed -> Result.failure(Exception(result.reason))
+            else -> Result.failure(Exception("Verification timeout")) // Fail CLOSED
+        }
+    }
+    
+    /**
+     * Fast local emulator check (probabilistic, client-side only).
+     * Uses heuristic scoring — NOT deterministic. 
+     * Use awaitVerification() for server-side hardware attestation.
+     */
+    @JvmStatic
+    fun isEmulator(): Boolean {
+        return if (isInitialized && ::emulatorDetector.isInitialized) {
+            emulatorDetector.isEmulator()
+        } else {
+            false
+        }
+    }
+    
+    /**
+     * Get the current session ID from the latest signal verification.
+     */
+    @JvmStatic
+    fun getCurrentSessionId(): String? = currentSessionId
     
     /**
      * Get the current session's verdict from the server.

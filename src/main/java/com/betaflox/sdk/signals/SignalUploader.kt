@@ -94,6 +94,34 @@ internal class SignalUploader(
     }
     
     /**
+     * Update session with integrity status when Play Integrity is unavailable.
+     * Tags the session for stricter backend scrutiny.
+     */
+    suspend fun updateIntegrityStatus(
+        sessionId: String,
+        status: String
+    ): Boolean {
+        return try {
+            firestore.collection(COLLECTION_SESSIONS)
+                .document(sessionId)
+                .update(mapOf(
+                    "integritySignals.status" to status,
+                    "integritySignals.meetsDeviceIntegrity" to false,
+                    "integritySignals.meetsBasicIntegrity" to false,
+                    "integritySignals.meetsStrongIntegrity" to false
+                ))
+                .await()
+            
+            Log.d(TAG, "Integrity status set to $status for session $sessionId")
+            true
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update integrity status: ${e.message}")
+            false
+        }
+    }
+    
+    /**
      * Update session with foreground transition count.
      */
     suspend fun updateForegroundTransitions(
