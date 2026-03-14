@@ -69,7 +69,7 @@ sealed class VerificationState {
 object BetaFloxSDK {
     
     private const val TAG = "BetaFloxSDK"
-    const val SDK_VERSION = "1.0.17"
+    const val SDK_VERSION = "1.0.18"
     
     private var isInitialized = false
     private var trackingEnabled = true
@@ -155,6 +155,11 @@ object BetaFloxSDK {
         if (!savedTesterId.isNullOrBlank()) {
             config.testerId = savedTesterId
             Log.i(TAG, "Restored tester ID from preferences: $savedTesterId")
+            // Trigger verification now that we have a valid testerId
+            // (deferred from init to avoid failing when testerId is unavailable)
+            CoroutineScope(Dispatchers.IO).launch {
+                performSignalVerification()
+            }
         }
         
         // Initialize Firebase with SDK's own configuration
@@ -259,10 +264,9 @@ object BetaFloxSDK {
         // Start syncing events to Firebase immediately
         firebaseSync.startSync()
         
-        // Auto-launch server-side signal collection & verification in the background
-        CoroutineScope(Dispatchers.IO).launch {
-            performSignalVerification()
-        }
+        // NOTE: performSignalVerification() is NOT called here.
+        // It is triggered from setTesterId() or when testerId is restored from prefs.
+        // This avoids failing immediately when testerId is not yet available.
         
         // If initialize() is called from an Activity's onCreate(), the onActivityCreated callback 
         // will not trigger for that Activity. We check it manually here just in case.
@@ -449,6 +453,15 @@ object BetaFloxSDK {
         
         // Start syncing events to Firebase
         firebaseSync.startSync()
+        
+        // Trigger signal verification now that testerId is set
+        // This was deferred from initialize() to avoid failing when testerId was unavailable
+        if (_verificationState.value !is VerificationState.Complete) {
+            _verificationState.value = VerificationState.Pending
+            CoroutineScope(Dispatchers.IO).launch {
+                performSignalVerification()
+            }
+        }
     }
 
     /**
@@ -579,8 +592,8 @@ object BetaFloxSDK {
         try {
             val testerId = config.testerId
             if (testerId.isNullOrBlank()) {
-                Log.d(TAG, "No tester ID yet — skipping signal verification")
-                _verificationState.value = VerificationState.Failed("No tester ID")
+                Log.d(TAG, "No tester ID yet — verification will retry when testerId is available")
+                // Stay Pending instead of Failed — setTesterId() will re-trigger
                 return
             }
             
