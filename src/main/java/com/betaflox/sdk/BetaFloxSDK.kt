@@ -69,7 +69,7 @@ sealed class VerificationState {
 object BetaFloxSDK {
     
     private const val TAG = "BetaFloxSDK"
-    const val SDK_VERSION = "1.0.18"
+    const val SDK_VERSION = "1.0.19"
     
     private var isInitialized = false
     private var trackingEnabled = true
@@ -155,11 +155,6 @@ object BetaFloxSDK {
         if (!savedTesterId.isNullOrBlank()) {
             config.testerId = savedTesterId
             Log.i(TAG, "Restored tester ID from preferences: $savedTesterId")
-            // Trigger verification now that we have a valid testerId
-            // (deferred from init to avoid failing when testerId is unavailable)
-            CoroutineScope(Dispatchers.IO).launch {
-                performSignalVerification()
-            }
         }
         
         // Initialize Firebase with SDK's own configuration
@@ -264,9 +259,14 @@ object BetaFloxSDK {
         // Start syncing events to Firebase immediately
         firebaseSync.startSync()
         
-        // NOTE: performSignalVerification() is NOT called here.
-        // It is triggered from setTesterId() or when testerId is restored from prefs.
-        // This avoids failing immediately when testerId is not yet available.
+        // Auto-launch signal verification if testerId is already available (restored from prefs)
+        // This MUST be after all components are initialized (signalCollector, signalUploader, auth, etc.)
+        if (!config.testerId.isNullOrBlank()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                performSignalVerification()
+            }
+        }
+        // If testerId is not yet available, setTesterId() will trigger verification later
         
         // If initialize() is called from an Activity's onCreate(), the onActivityCreated callback 
         // will not trigger for that Activity. We check it manually here just in case.
