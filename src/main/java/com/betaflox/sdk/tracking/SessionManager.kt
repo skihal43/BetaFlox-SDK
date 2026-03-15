@@ -40,6 +40,23 @@ internal class SessionManager(
     init {
         lastCheckinTimestamp = prefs.getLong(KEY_LAST_CHECKIN_TIME, 0L)
         restoreDailyDuration()
+        
+        // Reset lastCheckinTimestamp if the campaign has changed
+        // (prevents stale cooldown from old campaign blocking new check-ins)
+        val savedCampaignId = prefs.getString("daily_checkin_campaign_id", null)
+        if (savedCampaignId != null && savedCampaignId != config.campaignId) {
+            Log.i(TAG, "Campaign changed ($savedCampaignId -> ${config.campaignId}), resetting daily checkin state")
+            lastCheckinTimestamp = 0L
+            dailyTotalDuration = 0L
+            prefs.edit()
+                .putLong(KEY_LAST_CHECKIN_TIME, 0L)
+                .putLong(KEY_DAILY_DURATION, 0L)
+                .putString("daily_checkin_campaign_id", config.campaignId)
+                .apply()
+        } else if (savedCampaignId == null) {
+            // First time — store the current campaign ID
+            prefs.edit().putString("daily_checkin_campaign_id", config.campaignId).apply()
+        }
     }
     
     /**
@@ -234,17 +251,25 @@ internal class SessionManager(
     fun checkDailyCompletion() {
         val now = System.currentTimeMillis()
         val timeSinceLastCheckin = now - lastCheckinTimestamp
+        val dailyDuration = getDailySessionDuration()
+        val cooldownPassed = timeSinceLastCheckin >= CHECKIN_COOLDOWN_MS
+        val durationMet = dailyDuration >= DAILY_MIN_DURATION
         
-        if (timeSinceLastCheckin >= CHECKIN_COOLDOWN_MS && getDailySessionDuration() >= DAILY_MIN_DURATION) {
+        Log.d(TAG, "checkDailyCompletion: cooldown=${cooldownPassed} (${timeSinceLastCheckin/1000}s/${CHECKIN_COOLDOWN_MS/1000}s), duration=${durationMet} (${dailyDuration}s/${DAILY_MIN_DURATION}s)")
+        
+        if (cooldownPassed && durationMet) {
             // Calculate which day of the campaign this is
             val dayIndex = calculateCampaignDay()
+            Log.d(TAG, "checkDailyCompletion: dayIndex=$dayIndex")
             if (dayIndex in 0..13) {
                 eventLogger.logDailyCheckin(dayIndex)
                 lastCheckinTimestamp = now
                 
                 // Store in SharedPreferences for persistence
                 prefs.edit().putLong(KEY_LAST_CHECKIN_TIME, now).apply()
-                Log.d(TAG, "Daily check-in completed for day $dayIndex")
+                Log.i(TAG, "✅ Daily check-in completed for day $dayIndex (duration: ${dailyDuration}s)")
+            } else {
+                Log.w(TAG, "checkDailyCompletion: dayIndex $dayIndex is outside valid range 0..13")
             }
         }
     }

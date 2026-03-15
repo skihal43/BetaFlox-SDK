@@ -69,7 +69,7 @@ sealed class VerificationState {
 object BetaFloxSDK {
     
     private const val TAG = "BetaFloxSDK"
-    const val SDK_VERSION = "1.0.19"
+    const val SDK_VERSION = "1.0.20"
     
     private var isInitialized = false
     private var trackingEnabled = true

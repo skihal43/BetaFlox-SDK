@@ -84,7 +84,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.skihal43"
                 artifactId = "BetaFlox-SDK"
-                version = "1.0.19"
+                version = "1.0.20"
             }
         }
     }
