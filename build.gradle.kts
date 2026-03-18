@@ -56,9 +56,16 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.1")
     implementation("com.google.firebase:firebase-auth-ktx:23.1.0")
     implementation("com.google.firebase:firebase-functions-ktx:21.1.0")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity:18.0.0")
     
     // Google Play Integrity API for server-side verification
     implementation("com.google.android.play:integrity:1.3.0")
+    
+    // Play Install Referrer API for growth campaign install attribution
+    implementation("com.android.installreferrer:installreferrer:2.2")
+    
+    // Encrypted storage for security-sensitive growth data
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     
     // Coroutines for async operations
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
@@ -84,7 +91,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.skihal43"
                 artifactId = "BetaFlox-SDK"
-                version = "1.0.20"
+                version = "1.0.21"
             }
         }
     }

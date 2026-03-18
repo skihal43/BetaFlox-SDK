@@ -280,8 +280,9 @@ internal class SessionManager(
             Log.w(TAG, "Campaign start date not set, cannot calculate campaign day")
             return -1
         }
+        val TIME_TOLERANCE_MS = 2 * 60 * 60 * 1000L // 2 hours tolerance
         val daysSinceStart = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(
-            System.currentTimeMillis() - campaignStartDate
+            (System.currentTimeMillis() - campaignStartDate) + TIME_TOLERANCE_MS
         )
         return daysSinceStart.toInt().coerceIn(0, 13)
     }

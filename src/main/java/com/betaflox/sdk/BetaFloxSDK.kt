@@ -32,6 +32,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.withTimeoutOrNull
 import com.betaflox.sdk.binding.JoinTokenManager
+import com.betaflox.sdk.growth.GrowthInstallValidator
+import com.betaflox.sdk.growth.GrowthValidationState
+import com.betaflox.sdk.tracking.InstallReferrerManager
+import com.betaflox.sdk.tracking.PlayIntegrityManager
 import com.google.firebase.functions.FirebaseFunctions
 import android.widget.Toast
 import android.content.Intent
@@ -69,7 +73,7 @@ sealed class VerificationState {
 object BetaFloxSDK {
     
     private const val TAG = "BetaFloxSDK"
-    const val SDK_VERSION = "1.0.20"
+    const val SDK_VERSION = "1.0.21"
     
     private var isInitialized = false
     private var trackingEnabled = true
@@ -104,6 +108,11 @@ object BetaFloxSDK {
     private lateinit var reinstallDetector: ReinstallDetector
     private lateinit var rapidSwitchingDetector: RapidSwitchingDetector
     
+    // Growth Engine install validation
+    private var growthInstallValidator: GrowthInstallValidator? = null
+    private lateinit var installReferrerManager: InstallReferrerManager
+    private lateinit var playIntegrityManager: PlayIntegrityManager
+    
     /**
      * Get the SDK version.
      */
@@ -134,9 +143,11 @@ object BetaFloxSDK {
      * @param context Application context
      * @param apiKey Your BetaFlox API key
      * @param campaignId The campaign ID to track
+     * @param campaignType Campaign type: "testing" (default) or "growth"
      */
     @JvmStatic
-    fun initialize(context: Context, apiKey: String, campaignId: String) {
+    @JvmOverloads
+    fun initialize(context: Context, apiKey: String, campaignId: String, campaignType: String = "testing") {
         if (isInitialized) {
             Log.w(TAG, "SDK already initialized")
             return
@@ -167,6 +178,21 @@ object BetaFloxSDK {
         // Initialize Auth and Firestore for SDK
         auth = FirebaseAuth.getInstance(firebaseApp)
         val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance(firebaseApp)
+        
+        // Initialize Firebase App Check with Play Integrity provider
+        try {
+            val appCheck = com.google.firebase.appcheck.FirebaseAppCheck.getInstance(firebaseApp)
+            appCheck.installAppCheckProviderFactory(
+                com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory.getInstance()
+            )
+            // Token refresh listener — proactively refreshes before expiry
+            appCheck.addAppCheckListener { token ->
+                Log.d(TAG, "App Check token refreshed, expires: ${token.expireTimeMillis}")
+            }
+            Log.i(TAG, "Firebase App Check initialized with Play Integrity")
+        } catch (e: Exception) {
+            Log.e(TAG, "App Check initialization failed (non-fatal)", e)
+        }
         
         // Initialize signal collectors (server-side risk scoring)
         signalCollector = DeviceSignalCollector(appContext)
@@ -200,8 +226,20 @@ object BetaFloxSDK {
         // Initialize Functions & JoinTokenManager
         val functions = FirebaseFunctions.getInstance(firebaseApp)
         joinTokenManager = JoinTokenManager(appContext, config, deviceFingerprint, functions)
-
         
+        // Initialize Growth Engine components
+        installReferrerManager = InstallReferrerManager(appContext)
+        playIntegrityManager = PlayIntegrityManager(appContext)
+        growthInstallValidator = GrowthInstallValidator(
+            context = appContext,
+            referrerManager = installReferrerManager,
+            integrityManager = playIntegrityManager,
+            functions = functions
+        )
+        
+        // Store campaign type for growth validation gating
+        prefs.edit().putString(SDKConfig.KEY_CAMPAIGN_TYPE, campaignType).apply()
+        Log.d(TAG, "Campaign type: $campaignType")
         
         // Ensure campaign start date is set (needed for daily check-in day calculation)
         // If it wasn't set during initializeWithToken, set it now on first initialize
@@ -265,6 +303,12 @@ object BetaFloxSDK {
             CoroutineScope(Dispatchers.IO).launch {
                 performSignalVerification()
             }
+            // Auto-trigger growth validation if testerId is restored
+            if (campaignType == "growth") {
+                CoroutineScope(Dispatchers.IO).launch {
+                    growthInstallValidator?.validateIfNeeded(campaignId, config.testerId!!)
+                }
+            }
         }
         // If testerId is not yet available, setTesterId() will trigger verification later
         
@@ -274,7 +318,7 @@ object BetaFloxSDK {
             checkIntentForTesterId(context)
         }
         
-        Log.i(TAG, "SDK initialized for campaign: $campaignId (tracking: $trackingEnabled)")
+        Log.i(TAG, "SDK initialized for campaign: $campaignId (type: $campaignType, tracking: $trackingEnabled)")
     }
     
     private fun checkIntentForTesterId(activity: android.app.Activity) {
@@ -460,6 +504,15 @@ object BetaFloxSDK {
             _verificationState.value = VerificationState.Pending
             CoroutineScope(Dispatchers.IO).launch {
                 performSignalVerification()
+            }
+        }
+        
+        // Trigger growth install validation if deferred from initialize()
+        val campaignType = appContext.getSharedPreferences(SDKConfig.PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(SDKConfig.KEY_CAMPAIGN_TYPE, "testing")
+        if (campaignType == "growth") {
+            CoroutineScope(Dispatchers.IO).launch {
+                growthInstallValidator?.validateIfNeeded(config.campaignId, testerId)
             }
         }
     }
@@ -883,6 +936,33 @@ object BetaFloxSDK {
         
         isInitialized = false
         Log.i(TAG, "SDK shutdown complete")
+    }
+    
+    // ---- Growth Engine Public API ----
+    
+    /**
+     * Get the current growth install validation state.
+     * Only relevant for growth campaigns (campaignType = "growth").
+     */
+    val growthValidationState: StateFlow<GrowthValidationState>
+        get() = growthInstallValidator?.validationState
+            ?: MutableStateFlow(GrowthValidationState.Idle).asStateFlow()
+    
+    /**
+     * Check if this growth install has been validated.
+     */
+    @JvmStatic
+    fun isGrowthInstallValidated(): Boolean {
+        if (!isInitialized) return false
+        val prefs = appContext.getSharedPreferences(SDKConfig.PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(SDKConfig.KEY_GROWTH_VALIDATED, false)
+    }
+    
+    /**
+     * Internal accessor for GrowthValidationWorker.
+     */
+    internal fun getGrowthInstallValidator(): GrowthInstallValidator? {
+        return if (isInitialized) growthInstallValidator else null
     }
     
     // Internal methods

@@ -27,6 +27,13 @@ data class SDKConfig(
         const val KEY_BOUND_TESTER_ID = "bound_tester_id"
         const val KEY_BOUND_CAMPAIGN_ID = "bound_campaign_id"
         const val KEY_JOIN_TOKEN = "join_token"
+        
+        // Growth Engine Keys
+        const val KEY_CAMPAIGN_TYPE = "campaign_type" // "testing" or "growth"
+        const val KEY_GROWTH_VALIDATED = "growth_validated" // boolean
+        const val KEY_GROWTH_VALIDATION_STATUS = "growth_validation_status" // validated/queued/rejected/error
+        const val KEY_GROWTH_IDEMPOTENCY_KEY = "growth_idempotency_key"
+        const val KEY_GROWTH_VALIDATION_PAYLOAD = "growth_validation_payload" // JSON for retry
     }
     
     fun isConfigured(): Boolean {
